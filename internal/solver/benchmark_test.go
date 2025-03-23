@@ -27,7 +27,7 @@ func BenchmarkSolverPerformance(b *testing.B) {
 					p.Shuffle(20)
 
 					b.ResetTimer()
-					for i := 0; i < b.N; i++ {
+					for b.Loop() {
 						strategy.solver.Solve(p)
 					}
 				})
