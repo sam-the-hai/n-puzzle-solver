@@ -6,29 +6,29 @@ import (
 	"testing"
 )
 
-func BenchmarkSolvers(b *testing.B) {
-	sizes := []int{3, 4}
-	solvers := []struct {
+func BenchmarkSolverPerformance(b *testing.B) {
+	puzzleSizes := []int{3, 4}
+	solvingStrategies := []struct {
 		name   string
 		solver Solver
 	}{
-		{"A*", NewAStarSolver()},
-		{"BFS", NewBFSSolver()},
-		{"DFS", NewDFSSolver()},
-		{"IDA*", NewIDASolver()},
-		{"Greedy", NewGreedySolver()},
+		{"AStar", NewAStarSolver()},
+		{"BreadthFirstSearch", NewBFSSolver()},
+		{"DepthFirstSearch", NewDFSSolver()},
+		{"IterativeDeepeningAStar", NewIDASolver()},
+		{"GreedyBestFirst", NewGreedySolver()},
 	}
 
-	for _, size := range sizes {
-		b.Run(fmt.Sprintf("Size%d", size), func(b *testing.B) {
-			for _, s := range solvers {
-				b.Run(s.name, func(b *testing.B) {
+	for _, size := range puzzleSizes {
+		b.Run(fmt.Sprintf("PuzzleSize%d", size), func(b *testing.B) {
+			for _, strategy := range solvingStrategies {
+				b.Run(strategy.name, func(b *testing.B) {
 					p, _ := puzzle.NewPuzzle(size)
-					p.Shuffle(20) // Create a random puzzle state
+					p.Shuffle(20)
 
 					b.ResetTimer()
 					for i := 0; i < b.N; i++ {
-						s.solver.Solve(p)
+						strategy.solver.Solve(p)
 					}
 				})
 			}
