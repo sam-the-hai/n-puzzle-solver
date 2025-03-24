@@ -139,3 +139,58 @@ func (p *Puzzle) GetValidMoves() []string {
 
 	return validMoves
 }
+
+func NewPuzzleFromBoard(board [][]int) (*Puzzle, error) {
+	size := len(board)
+	if size == 0 || size != len(board[0]) {
+		return nil, fmt.Errorf("invalid board size")
+	}
+
+	// Validate board contents
+	numbers := make(map[int]bool)
+	for i := range size {
+		for j := range size {
+			num := board[i][j]
+			if num < 0 || num >= size*size {
+				return nil, fmt.Errorf("invalid number %d at position [%d][%d]", num, i, j)
+			}
+			if numbers[num] {
+				return nil, fmt.Errorf("duplicate number %d", num)
+			}
+			numbers[num] = true
+		}
+	}
+
+	// Find empty tile position
+	var emptyRow, emptyCol int
+	for i := range size {
+		for j := range size {
+			if board[i][j] == 0 {
+				emptyRow, emptyCol = i, j
+				break
+			}
+		}
+	}
+
+	return &Puzzle{
+		Size:      size,
+		Board:     board,
+		EmptyPos:  Position{emptyRow, emptyCol},
+		GoalState: createGoalState(size),
+	}, nil
+}
+
+func createGoalState(size int) [][]int {
+	goal := make([][]int, size)
+	for i := range size {
+		goal[i] = make([]int, size)
+		for j := range size {
+			if i == size-1 && j == size-1 {
+				goal[i][j] = 0
+			} else {
+				goal[i][j] = i*size + j + 1
+			}
+		}
+	}
+	return goal
+}
