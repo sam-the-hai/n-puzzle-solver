@@ -22,9 +22,9 @@ func CheckSolvability(args []string) error {
 	}
 
 	board := make([][]int, size)
-	for i := 0; i < size; i++ {
+	for i := range size {
 		board[i] = make([]int, size)
-		for j := 0; j < size; j++ {
+		for j := range size {
 			num, err := strconv.Atoi(args[i*size+j+1])
 			if err != nil {
 				return fmt.Errorf("invalid number at position [%d][%d]: %w", i, j, err)
