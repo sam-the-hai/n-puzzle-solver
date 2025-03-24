@@ -23,6 +23,11 @@ func (s *IDASolver) Solve(p *puzzle.Puzzle) []string {
 		return nil
 	}
 
+	// If already at goal state, return empty path
+	if p.IsGoalState() {
+		return []string{}
+	}
+
 	threshold := float64(calculateManhattanDistance(p))
 	for {
 		result, newThreshold := s.search(p, threshold)
@@ -48,11 +53,16 @@ func (s *IDASolver) search(p *puzzle.Puzzle, threshold float64) (*IDANode, float
 	minCost := float64(1<<31 - 1)
 	stack := []*IDANode{initialNode}
 	visited := make(map[string]bool)
-	visited[boardToString(p.Board)] = true
 
 	for len(stack) > 0 {
 		current := stack[len(stack)-1]
 		stack = stack[:len(stack)-1]
+
+		boardStr := boardToString(current.puzzle.Board)
+		if visited[boardStr] {
+			continue
+		}
+		visited[boardStr] = true
 
 		f := float64(current.cost + current.heuristic)
 		if f > threshold {
@@ -66,15 +76,13 @@ func (s *IDASolver) search(p *puzzle.Puzzle, threshold float64) (*IDANode, float
 			return current, 0
 		}
 
-		for direction := range puzzle.Directions {
-			if !current.puzzle.IsValidMove(direction) {
-				continue
-			}
-
+		// Try all possible moves
+		validMoves := current.puzzle.GetValidMoves()
+		for i := len(validMoves) - 1; i >= 0; i-- { // Reverse order for DFS-like behavior
+			direction := validMoves[i]
 			newPuzzle := applyMove(current.puzzle, direction)
-			boardStr := boardToString(newPuzzle.Board)
-
-			if !visited[boardStr] {
+			newBoardStr := boardToString(newPuzzle.Board)
+			if !visited[newBoardStr] {
 				newNode := &IDANode{
 					puzzle:    newPuzzle,
 					parent:    current,
@@ -83,7 +91,6 @@ func (s *IDASolver) search(p *puzzle.Puzzle, threshold float64) (*IDANode, float
 					heuristic: calculateManhattanDistance(newPuzzle),
 				}
 				stack = append(stack, newNode)
-				visited[boardStr] = true
 			}
 		}
 	}

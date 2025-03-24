@@ -1,6 +1,7 @@
 package solver
 
 import (
+	"fmt"
 	"n-puzzle-solver/internal/puzzle"
 
 	"github.com/emirpasic/gods/queues/priorityqueue"
@@ -142,7 +143,7 @@ func boardToString(board [][]int) string {
 	result := ""
 	for _, row := range board {
 		for _, val := range row {
-			result += string(rune(val + '0'))
+			result += fmt.Sprintf("%d", val)
 		}
 	}
 	return result

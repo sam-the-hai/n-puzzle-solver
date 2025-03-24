@@ -22,6 +22,11 @@ func (s *DFSSolver) Solve(p *puzzle.Puzzle) []string {
 		return nil
 	}
 
+	// If already at goal state, return empty path
+	if p.IsGoalState() {
+		return []string{}
+	}
+
 	stack := []*DFSNode{{
 		puzzle: p,
 		parent: nil,

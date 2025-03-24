@@ -58,7 +58,9 @@ func TestDFSSolver(t *testing.T) {
 			if tt.wantPath {
 				solution := solver.Solve(p)
 				assert.NotNil(t, solution)
-				assert.True(t, len(solution) > 0)
+				if !p.IsGoalState() {
+					assert.True(t, len(solution) > 0)
+				}
 			} else {
 				solution := solver.Solve(p)
 				assert.Nil(t, solution)

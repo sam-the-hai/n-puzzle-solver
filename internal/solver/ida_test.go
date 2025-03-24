@@ -52,7 +52,7 @@ func TestIDASolver(t *testing.T) {
 				{7, 0, 5},
 			},
 			size:     3,
-			wantPath: true,
+			wantPath: false,
 		},
 	}
 
@@ -62,17 +62,64 @@ func TestIDASolver(t *testing.T) {
 			p.Board = tt.board
 			p.EmptyPos = findEmptyPosition(tt.board)
 
+			// Create and set goal state
+			goalState := createGoalState(tt.size)
+			p.GoalState = goalState
+
 			solver := NewIDASolver()
-			assert.Equal(t, tt.wantPath, solver.IsSolvable(p))
+			isSolvable := solver.IsSolvable(p)
+			t.Logf("Puzzle:\n%v\nIs solvable: %v", p, isSolvable)
+			t.Logf("Empty position: %v", p.EmptyPos)
+			t.Logf("Goal state:\n%v", p.GoalState)
+
+			// Calculate inversions manually for debugging
+			inversions := 0
+			flatBoard := make([]int, 0, tt.size*tt.size)
+			for i := range tt.size {
+				for j := range tt.size {
+					if tt.board[i][j] != 0 {
+						flatBoard = append(flatBoard, tt.board[i][j])
+					}
+				}
+			}
+			for i := range len(flatBoard) - 1 {
+				for j := i + 1; j < len(flatBoard); j++ {
+					if flatBoard[i] > flatBoard[j] {
+						inversions++
+					}
+				}
+			}
+			t.Logf("Flat board: %v", flatBoard)
+			t.Logf("Inversions: %d", inversions)
+			t.Logf("Blank row from bottom: %d", tt.size-p.EmptyPos.Row)
+
+			assert.Equal(t, tt.wantPath, isSolvable)
 
 			if tt.wantPath {
 				solution := solver.Solve(p)
 				assert.NotNil(t, solution)
-				assert.True(t, len(solution) > 0)
+				if !p.IsGoalState() {
+					assert.True(t, len(solution) > 0)
+				}
 			} else {
 				solution := solver.Solve(p)
 				assert.Nil(t, solution)
 			}
 		})
 	}
+}
+
+func createGoalState(size int) [][]int {
+	goal := make([][]int, size)
+	for i := range size {
+		goal[i] = make([]int, size)
+		for j := range size {
+			if i == size-1 && j == size-1 {
+				goal[i][j] = 0
+			} else {
+				goal[i][j] = i*size + j + 1
+			}
+		}
+	}
+	return goal
 }

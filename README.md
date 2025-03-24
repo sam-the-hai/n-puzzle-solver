@@ -21,6 +21,23 @@ cd n-puzzle-solver
 go mod download
 ```
 
+## Testing
+
+Run all tests:
+```bash
+go test ./...
+```
+
+Run tests with coverage:
+```bash
+go test -cover ./...
+```
+
+Run benchmarks:
+```bash
+go test -bench=. ./internal/solver/...
+```
+
 ## Usage
 
 ### Create a Solvable Puzzle

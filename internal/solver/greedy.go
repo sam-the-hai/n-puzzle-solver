@@ -55,6 +55,11 @@ func (s *GreedySolver) Solve(p *puzzle.Puzzle) []string {
 		return nil
 	}
 
+	// If already at goal state, return empty path
+	if p.IsGoalState() {
+		return []string{}
+	}
+
 	pq := make(GreedyQueue, 0)
 	heap.Init(&pq)
 	heap.Push(&pq, &GreedyNode{
