@@ -40,13 +40,12 @@ jobs:
 
       - name: Build WebAssembly
         run: |
-          GOOS=js GOARCH=wasm CGO_ENABLED=0 go build -o dist/main.wasm cmd/wasm/main.go 
+          GOOS=js GOARCH=wasm CGO_ENABLED=0 go build -o dist/main.wasm cmd/wasm/main.go || exit 1
 
       - name: Copy static files
         run: |
           cp cmd/wasm/assets/index.html dist/
-          cp -r cmd/wasm/assets/styles dist/ || true
-          cp -r cmd/wasm/assets/scripts dist/ || true
+          cp cmd/wasm/assets/wasm_exec.js dist/
 
       - name: Setup Pages
         id: pages
