@@ -1,6 +1,6 @@
 module n-puzzle-solver
 
-go 1.24.1
+go 1.22.0
 
 require (
 	github.com/emirpasic/gods v1.18.1
