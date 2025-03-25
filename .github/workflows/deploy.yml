@@ -28,9 +28,14 @@ jobs:
           path: |
             ~/.cache/go-build
             ~/go/pkg/mod
-          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum', 'cmd/wasm/main.go') }}
           restore-keys: |
             ${{ runner.os }}-go-
+
+      - name: Clean
+        run: |
+          rm -rf dist
+          go clean -cache -modcache
 
       - name: Install dependencies
         run: go mod download
