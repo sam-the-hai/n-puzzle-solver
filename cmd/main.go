@@ -1,9 +1,10 @@
-package cmd
+package main
 
 import (
 	"fmt"
 	"n-puzzle-solver/internal/cli"
 	"n-puzzle-solver/internal/solver"
+	"os"
 
 	"github.com/spf13/cobra"
 )
@@ -13,10 +14,6 @@ var rootCmd = &cobra.Command{
 	Short: "A solver for the n-puzzle problem",
 	Long: `A command line tool to solve the n-puzzle problem.
 Supports various solving algorithms including A*, BFS, DFS, IDA*, and Greedy Best First.`,
-}
-
-func Execute() error {
-	return rootCmd.Execute()
 }
 
 var createCmd = &cobra.Command{
@@ -80,4 +77,11 @@ func init() {
 	rootCmd.AddCommand(solveCmd)
 
 	solveCmd.Flags().StringVarP(&algorithm, "algorithm", "a", "astar", "Algorithm to use for solving")
+}
+
+func main() {
+	if err := rootCmd.Execute(); err != nil {
+		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+		os.Exit(1)
+	}
 }

@@ -28,7 +28,7 @@ jobs:
           path: |
             ~/.cache/go-build
             ~/go/pkg/mod
-          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum', 'cmd/wasm/main.go') }}
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum', 'wasm/main.go') }}
           restore-keys: |
             ${{ runner.os }}-go-
 
@@ -45,12 +45,12 @@ jobs:
 
       - name: Build WebAssembly
         run: |
-          GOOS=js GOARCH=wasm CGO_ENABLED=0 go build -o dist/main.wasm cmd/wasm/main.go || exit 1
+          GOOS=js GOARCH=wasm CGO_ENABLED=0 go build -o dist/main.wasm wasm/main.go || exit 1
 
       - name: Copy static files
         run: |
-          cp cmd/wasm/assets/index.html dist/
-          cp cmd/wasm/assets/wasm_exec.js dist/
+          cp wasm/assets/index.html dist/
+          cp wasm/assets/wasm_exec.js dist/
 
       - name: Setup Pages
         id: pages
