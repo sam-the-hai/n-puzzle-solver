@@ -147,9 +147,11 @@
                     return;
                 }
 
+                // Store the initial puzzle before solving
                 const puzzleData = JSON.parse(resultDiv.textContent);
+                window.initialPuzzleState = puzzleData.puzzle;  // Store initial state globally
+
                 const algorithm = document.getElementById('algorithm').value;
-                
                 const request = {
                     board: puzzleData.puzzle,
                     algorithm: algorithm
@@ -157,9 +159,10 @@
 
                 solvePuzzle(JSON.stringify(request));
                 
-                // Get the solution moves from the result div
-                const solutionData = JSON.parse(resultDiv.textContent);
-                displaySolution(solutionData, puzzleData.puzzle);
+                // Parse the solution from the updated result div
+                const solutionText = document.getElementById('result').textContent;
+                const solutionData = JSON.parse(solutionText.replace(/<\/?pre>/g, ''));  // Remove pre tags
+                displaySolution(solutionData);
             } catch (error) {
                 console.error('Error in handleSolve:', error);
                 alert('Error solving puzzle. Please try again.');
@@ -191,25 +194,37 @@
             container.appendChild(grid);
         }
 
-        function displaySolution(solution, initialPuzzle) {
+        function displaySolution(solution) {
             const container = document.getElementById('solution-container');
             if (!solution || !solution.solution) {
                 container.innerHTML = '<p>No solution found!</p>';
                 return;
             }
             
+            // Store solution moves globally
+            window.solutionMoves = solution.solution;
+            
             container.innerHTML = `
                 <h3>✨ Solution Found!</h3>
                 <p class="step-counter">Number of moves: ${solution.solution.length}</p>
-                <button onclick="animateSolution(${JSON.stringify(solution.solution)}, ${JSON.stringify(initialPuzzle)})">
-                    🎬 Show Solution
-                </button>
+                <button onclick="startAnimation()">🎬 Show Solution</button>
             `;
         }
 
+        function startAnimation() {
+            if (!window.initialPuzzleState || !window.solutionMoves) {
+                console.error("Missing puzzle state or solution moves");
+                return;
+            }
+            animateSolution(window.solutionMoves, window.initialPuzzleState);
+        }
+
         function applyMove(puzzle, move) {
-            const size = Math.sqrt(puzzle.length);
-            const newPuzzle = [...puzzle];
+            // puzzleData is a 2D array of the puzzle
+            // we need to convert it to a 1D array
+            const flatPuzzleData = puzzle.flat();
+            const size = Math.sqrt(flatPuzzleData.length);
+            const newPuzzle = [...flatPuzzleData];
             
             // Find the empty tile (0)
             const emptyIndex = newPuzzle.indexOf(0);
@@ -242,8 +257,7 @@
         }
 
         function animateSolution(moves, initialPuzzle) {
-            console.log(moves); 
-            console.log(initialPuzzle);
+            console.log("Starting animation with:", { moves, initialPuzzle });
             let currentPuzzle = [...initialPuzzle];
             let currentMove = 0;
             
@@ -256,7 +270,7 @@
                     return;
                 }
                 
-                // Apply the move to get the next state
+                console.log(`Applying move ${currentMove}: ${moves[currentMove]}`);
                 currentPuzzle = applyMove(currentPuzzle, moves[currentMove]);
                 createPuzzleGrid(currentPuzzle);
                 
