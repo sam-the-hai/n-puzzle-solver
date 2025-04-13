@@ -1,94 +1,268 @@
 <!DOCTYPE html>
-<html>
 <head>
     <meta charset="utf-8"/>
-    <title>N-Puzzle Solver</title>
+    <title>Sliding Puzzle Game</title>
     <script src="wasm_exec.js"></script>
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Comic Sans MS', cursive, sans-serif;
             max-width: 800px;
             margin: 0 auto;
             padding: 20px;
-            background-color: #f5f5f5;
+            background-color: #f0f7ff;
         }
         #app {
             background-color: white;
             padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            border-radius: 15px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        h1 {
+            color: #2196F3;
+            font-size: 2.5em;
+            margin-bottom: 20px;
+        }
+        .controls {
+            margin: 20px 0;
         }
         button {
-            background-color: #4CAF50;
+            background-color: #FF4081;
             color: white;
-            padding: 10px 20px;
+            padding: 12px 24px;
             border: none;
-            border-radius: 4px;
+            border-radius: 25px;
             cursor: pointer;
-            margin: 5px;
+            margin: 10px;
+            font-size: 1.2em;
+            font-family: 'Comic Sans MS', cursive, sans-serif;
+            transition: transform 0.2s, background-color 0.2s;
         }
         button:hover {
-            background-color: #45a049;
-        }
-        #result {
-            margin-top: 20px;
-            padding: 15px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            min-height: 100px;
+            background-color: #E91E63;
+            transform: scale(1.05);
         }
         select, input {
-            padding: 8px;
-            margin: 5px;
-            border-radius: 4px;
-            border: 1px solid #ddd;
+            padding: 10px;
+            margin: 10px;
+            border-radius: 15px;
+            border: 2px solid #2196F3;
+            font-size: 1.1em;
+            font-family: 'Comic Sans MS', cursive, sans-serif;
+        }
+        .puzzle-grid {
+            display: grid;
+            gap: 10px;
+            margin: 20px auto;
+            max-width: 400px;
+        }
+        .puzzle-tile {
+            background-color: #2196F3;
+            color: white;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2em;
+            aspect-ratio: 1;
+            transition: transform 0.3s;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        .puzzle-tile:hover {
+            transform: scale(1.05);
+        }
+        .puzzle-tile.empty {
+            background-color: #f0f7ff;
+            border: 2px dashed #2196F3;
+        }
+        .solution-steps {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 10px;
+            background-color: #E3F2FD;
+        }
+        .step-counter {
+            font-size: 1.2em;
+            color: #1976D2;
+            margin: 10px 0;
         }
     </style>
 </head>
 <body>
     <div id="app">
-        <h1>N-Puzzle Solver</h1>
-        <div>
+        <h1>🧩 Sliding Puzzle Game</h1>
+        <div class="controls">
+            <label for="size">Puzzle Size:</label>
             <input type="number" id="size" value="3" min="3" max="5">
-            <button onclick="handleGenerate()">Generate Puzzle</button>
+            <button onclick="handleGenerate()">🎲 New Puzzle</button>
         </div>
-        <div>
+        <div class="controls">
+            <label for="algorithm">Solve Using:</label>
             <select id="algorithm">
-                <option value="astar">A*</option>
-                <option value="bfs">Breadth First Search</option>
-                <option value="dfs">Depth First Search</option>
-                <option value="ida">Iterative Deepening A*</option>
-                <option value="greedy">Greedy Best First</option>
+                <option value="astar">🌟 A* Search</option>
+                <option value="bfs">🌳 Breadth First</option>
+                <option value="dfs">🔍 Depth First</option>
+                <option value="ida">🔄 Iterative Deepening</option>
+                <option value="greedy">🏃 Greedy Search</option>
             </select>
-            <button onclick="handleSolve()">Solve Puzzle</button>
+            <button onclick="handleSolve()">✨ Solve Puzzle</button>
         </div>
-        <div id="result"></div>
+        <div id="result" style="display: none;"></div>
+        <div id="puzzle-container"></div>
+        <div id="solution-container" class="solution-steps"></div>
     </div>
     <script>
         const go = new Go();
-        WebAssembly.instantiateStreaming(fetch("main.wasm"), go.importObject).then((result) => {
-            go.run(result.instance);
-        });
+        WebAssembly.instantiateStreaming(fetch("main.wasm"), go.importObject)
+            .then((result) => {
+                go.run(result.instance);
+            })
+            .catch(error => {
+                console.error('Error loading WebAssembly:', error);
+            });
 
         function handleGenerate() {
-            const size = parseInt(document.getElementById('size').value);
-            generatePuzzle(size);
+            try {
+                const size = parseInt(document.getElementById('size').value);
+                generatePuzzle(size);
+                
+                // Get the puzzle data from the result div
+                const resultDiv = document.getElementById('result');
+                const puzzleData = JSON.parse(resultDiv.textContent);
+                
+                // Create the visual grid
+                createPuzzleGrid(puzzleData.puzzle);
+            } catch (error) {
+                console.error('Error in handleGenerate:', error);
+                alert('Error generating puzzle. Please try again.');
+            }
         }
 
         function handleSolve() {
-            const result = document.getElementById('result');
-            const puzzleData = JSON.parse(result.textContent);
-            if (!puzzleData.puzzle) {
-                alert('Please generate a puzzle first');
+            try {
+                const resultDiv = document.getElementById('result');
+                if (!resultDiv || !resultDiv.textContent) {
+                    alert('Please generate a puzzle first! 🎲');
+                    return;
+                }
+
+                const puzzleData = JSON.parse(resultDiv.textContent);
+                const algorithm = document.getElementById('algorithm').value;
+                
+                const request = {
+                    board: puzzleData.puzzle,
+                    algorithm: algorithm
+                };
+
+                solvePuzzle(JSON.stringify(request));
+                
+                // Get the solution moves from the result div
+                const solutionData = JSON.parse(resultDiv.textContent);
+                displaySolution(solutionData, puzzleData.puzzle);
+            } catch (error) {
+                console.error('Error in handleSolve:', error);
+                alert('Error solving puzzle. Please try again.');
+            }
+        }
+
+        function createPuzzleGrid(puzzleData) {
+            // puzzleData is a 2D array of the puzzle
+            // we need to convert it to a 1D array
+            const flatPuzzleData = puzzleData.flat();
+            const container = document.getElementById('puzzle-container');
+            const size = flatPuzzleData.length;
+
+            const grid = document.createElement('div');
+            // size is the number of tiles in the puzzle
+            // we need to convert it to the number of rows and columns  
+            const linearSize = Math.sqrt(size);
+            grid.className = 'puzzle-grid';
+            grid.style.gridTemplateColumns = `repeat(${linearSize}, 1fr)`;
+            
+            flatPuzzleData.forEach((num) => {
+                const tile = document.createElement('div');
+                tile.className = `puzzle-tile ${num === 0 ? 'empty' : ''}`;
+                tile.textContent = num === 0 ? '' : num;
+                grid.appendChild(tile);
+            });
+            
+            container.innerHTML = '';
+            container.appendChild(grid);
+        }
+
+        function displaySolution(solution, initialPuzzle) {
+            const container = document.getElementById('solution-container');
+            if (!solution || !solution.solution) {
+                container.innerHTML = '<p>No solution found!</p>';
                 return;
             }
-            const algorithm = document.getElementById('algorithm').value;
-            const request = {
-                board: puzzleData.puzzle,
-                algorithm: algorithm
-            };
-            solvePuzzle(JSON.stringify(request));
+            
+            container.innerHTML = `
+                <h3>✨ Solution Found!</h3>
+                <p class="step-counter">Number of moves: ${solution.solution.length}</p>
+                <button onclick="animateSolution(${JSON.stringify(solution.solution)}, ${JSON.stringify(initialPuzzle)})">
+                    🎬 Show Solution
+                </button>
+            `;
+        }
+
+        function applyMove(puzzle, move) {
+            const size = Math.sqrt(puzzle.length);
+            const newPuzzle = [...puzzle];
+            
+            // Find the empty tile (0)
+            const emptyIndex = newPuzzle.indexOf(0);
+            const row = Math.floor(emptyIndex / size);
+            const col = emptyIndex % size;
+            
+            let swapIndex = -1;
+            
+            switch(move) {
+                case "UP":
+                    if (row < size - 1) swapIndex = emptyIndex + size;
+                    break;
+                case "DOWN":
+                    if (row > 0) swapIndex = emptyIndex - size;
+                    break;
+                case "LEFT":
+                    if (col < size - 1) swapIndex = emptyIndex + 1;
+                    break;
+                case "RIGHT":
+                    if (col > 0) swapIndex = emptyIndex - 1;
+                    break;
+            }
+            
+            if (swapIndex !== -1) {
+                // Swap the empty tile with the target tile
+                [newPuzzle[emptyIndex], newPuzzle[swapIndex]] = [newPuzzle[swapIndex], newPuzzle[emptyIndex]];
+            }
+            
+            return newPuzzle;
+        }
+
+        function animateSolution(moves, initialPuzzle) {
+            console.log(moves); 
+            console.log(initialPuzzle);
+            let currentPuzzle = [...initialPuzzle];
+            let currentMove = 0;
+            
+            // Show initial state
+            createPuzzleGrid(currentPuzzle);
+            
+            const interval = setInterval(() => {
+                if (currentMove >= moves.length) {
+                    clearInterval(interval);
+                    return;
+                }
+                
+                // Apply the move to get the next state
+                currentPuzzle = applyMove(currentPuzzle, moves[currentMove]);
+                createPuzzleGrid(currentPuzzle);
+                
+                currentMove++;
+            }, 1000);
         }
     </script>
 </body>
-</html> 
+</html>
