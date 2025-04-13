@@ -52,9 +52,9 @@ jobs:
           cp wasm/assets/index.html dist/
           cp wasm/assets/wasm_exec.js dist/
           cp wasm/assets/styles.css dist/
-          cp wasm/assets/js/puzzle.js dist/
-          cp wasm/assets/js/animation.js dist/
-          cp wasm/assets/js/main.js dist/
+          cp wasm/assets/js/puzzle.js dist/js/
+          cp wasm/assets/js/animation.js dist/js/
+          cp wasm/assets/js/main.js dist/js/
 
       - name: Setup Pages
         id: pages
